@@ -1,0 +1,27 @@
+/** Friendly, non-technical messages for server result codes. */
+export const BOOKING_ERRORS: Record<string, string> = {
+  bookings_disabled: 'Bookings are paused right now. Please check back soon.',
+  service_unavailable: 'This service is temporarily unavailable.',
+  slot_unavailable: 'That time slot is not offered for this service.',
+  closed_day: 'We do not take bookings for this service on that day.',
+  blocked_date: 'That date is not available (holiday or temporary closure).',
+  in_past: 'Please choose a date that has not passed.',
+  too_soon: 'That slot starts too soon. Please choose a later slot.',
+  too_far: 'That date is too far ahead. Please choose an earlier date.',
+  slot_full: 'Sorry, that slot just filled up. Please pick another.',
+  already_booked: 'You already have a booking for this service in that slot.',
+  too_many_active: 'You have reached the limit of active bookings. Please complete or cancel one first.',
+  not_found: 'We could not find that booking with those details.',
+  not_allowed: 'This change is no longer allowed online. Please contact us.',
+  not_reschedulable: 'This booking can no longer be rescheduled.',
+  no_change: 'That is the same date and slot as your current booking.',
+  reference_collision: 'Something went wrong. Please try again.',
+  invalid_transition: 'That status change is not allowed from the current status.',
+  reason_required: 'A reason is required for this action.',
+  invalid_payment: 'Enter a valid payment amount.',
+  payment_not_allowed: 'Payment can be recorded only for confirmed, in-progress or completed bookings.',
+  already_paid: 'This booking is already marked as paid.',
+  nothing_to_refund: 'Only paid bookings can be refunded.',
+  refund_too_large: 'Refund cannot exceed the amount collected.',
+};
+export const messageFor = (code?: string) => (code && BOOKING_ERRORS[code]) || 'Something went wrong. Please try again.';
