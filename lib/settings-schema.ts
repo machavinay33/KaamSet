@@ -9,11 +9,11 @@ export const PAYMENT_METHODS = [
 
 /** Allow-list of editable settings. Anything not listed here can never be written (no mass assignment). No secrets live here. */
 export const SETTING_FIELDS: FieldDef[] = [
-  { key: 'society.name', label: 'Society name', group: 'Society', type: 'text', default: 'Shiv Kailasa Society', public: true },
+  { key: 'society.name', label: 'Service area', group: 'Society', type: 'text', default: 'MIHAN', public: true },
   { key: 'society.location', label: 'Location', group: 'Society', type: 'text', default: 'Nagpur, Maharashtra', public: true },
   { key: 'notice.banner', label: 'Customer notice (shown site-wide)', group: 'Society', type: 'text', default: '', public: true, help: 'Leave empty to hide.' },
   { key: 'contact.phone', label: 'Phone number', group: 'Contact', type: 'text', default: '', public: true, kind: 'phone', help: 'Shown to customers only when filled in.' },
-  { key: 'contact.whatsapp', label: 'WhatsApp number', group: 'Contact', type: 'text', default: '', public: true, kind: 'phone', help: 'Creates a normal wa.me chat link. No WhatsApp API is used.' },
+  { key: 'contact.whatsapp', label: 'WhatsApp number', group: 'Contact', type: 'text', default: '+91 95293 41654', public: true, kind: 'phone', help: 'Creates a normal wa.me chat link. No WhatsApp API is used.' },
   { key: 'contact.email', label: 'Email', group: 'Contact', type: 'text', default: '', public: true, kind: 'email' },
   { key: 'contact.hours', label: 'Business operating hours', group: 'Contact', type: 'text', default: '', public: true, help: 'e.g. Mon-Sat, 9 AM - 6 PM' },
   { key: 'booking.enabled', label: 'Accept new bookings', group: 'Booking', type: 'bool', default: true, public: true, help: 'Turn off to pause all bookings temporarily.' },

@@ -13,7 +13,7 @@ export default async function BookPage({ searchParams }: { searchParams: Promise
   return (
     <div className="container-page py-10 sm:py-14">
       <h1 className="text-3xl font-bold sm:text-4xl">Book a service</h1>
-      <p className="mt-2 max-w-2xl text-ink-600">For residents of {settings['society.name']}. No account needed.</p>
+      <p className="mt-2 max-w-2xl text-ink-600">Services are available across MIHAN. Choose your township when booking. No account needed.</p>
       {error ? <p className="mt-6 rounded-2xl bg-amber-50 p-5 text-amber-900">We could not load services right now. Please refresh in a moment.</p> : (
         <div className="mt-8">
           <BookingForm

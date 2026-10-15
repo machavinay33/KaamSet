@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangle, Loader2 } from 'lucide-react';
-import { bookingFormSchema, type BookingFormValues } from '@/lib/validation/booking';
+import { bookingFormSchema, MIHAN_TOWNSHIPS, type BookingFormValues } from '@/lib/validation/booking';
 import { saveBooking } from '@/lib/client/saved-bookings';
 import { addDays, formatDate, formatINR, formatTime, todayIST } from '@/lib/format';
 import { SlotPicker } from '@/components/SlotPicker';
@@ -27,7 +27,7 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
 
   const { register, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { serviceId: initialServiceId ?? '', customerName: '', customerPhone: '', flatIdentifier: '', bookingDate: '', slotId: '', instructions: '', acceptTerms: false, website: '' },
+    defaultValues: { serviceId: initialServiceId ?? '', customerName: '', customerPhone: '', buildingName: '', flatNumber: '', bookingDate: '', slotId: '', instructions: '', acceptTerms: false, website: '' },
   });
   const serviceId = watch('serviceId'); const bookingDate = watch('bookingDate'); const slotId = watch('slotId');
   const service = services.find((s) => s.id === serviceId);
@@ -99,9 +99,11 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
         </fieldset>
 
         <fieldset className="card space-y-4 p-5"><legend className="px-1 text-base font-semibold">2. Your details</legend>
-          <div><label htmlFor="customerName" className="label">Full name</label><input id="customerName" autoComplete="name" className="input" {...register('customerName')} aria-invalid={!!errors.customerName} />{errors.customerName && <p className="field-error">{errors.customerName.message}</p>}</div>
+          <div><label htmlFor="customerName" className="label">Name</label><input id="customerName" autoComplete="name" className="input" {...register('customerName')} aria-invalid={!!errors.customerName} />{errors.customerName && <p className="field-error">{errors.customerName.message}</p>}</div>
           <div><label htmlFor="customerPhone" className="label">Mobile number</label><input id="customerPhone" inputMode="tel" autoComplete="tel" placeholder="10-digit mobile number" className="input" {...register('customerPhone')} aria-invalid={!!errors.customerPhone} />{errors.customerPhone && <p className="field-error">{errors.customerPhone.message}</p>}</div>
-          <div><label htmlFor="flatIdentifier" className="label">Flat / tower / block</label><input id="flatIdentifier" placeholder="e.g. B-402" className="input" {...register('flatIdentifier')} aria-invalid={!!errors.flatIdentifier} />{errors.flatIdentifier && <p className="field-error">{errors.flatIdentifier.message}</p>}</div>
+          <div><label htmlFor="township" className="label">Location / township</label><select id="township" className="input" defaultValue="" {...register('township')} aria-invalid={!!errors.township}><option value="" disabled>Choose your township</option>{MIHAN_TOWNSHIPS.map((township) => <option key={township} value={township}>{township}</option>)}</select>{errors.township && <p className="field-error">{errors.township.message}</p>}</div>
+          <div><label htmlFor="buildingName" className="label">Wing/apartment name</label><input id="buildingName" autoComplete="address-line1" placeholder="e.g. Tower A" className="input" {...register('buildingName')} aria-invalid={!!errors.buildingName} />{errors.buildingName && <p className="field-error">{errors.buildingName.message}</p>}</div>
+          <div><label htmlFor="flatNumber" className="label">Flat number</label><input id="flatNumber" autoComplete="address-line2" placeholder="e.g. 402" className="input" {...register('flatNumber')} aria-invalid={!!errors.flatNumber} />{errors.flatNumber && <p className="field-error">{errors.flatNumber.message}</p>}</div>
           <div><label htmlFor="instructions" className="label">Instructions <span className="font-normal text-ink-500">(optional)</span></label><textarea id="instructions" rows={3} maxLength={500} className="input" {...register('instructions')} />{errors.instructions && <p className="field-error">{errors.instructions.message}</p>}</div>
         </fieldset>
 

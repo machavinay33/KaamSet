@@ -49,7 +49,10 @@ export default async function BookingDetail({ params, searchParams }: { params: 
               <div><dt className="text-ink-500">Service (price snapshot)</dt><dd className="font-medium">{b.service_name} · {formatINR(b.service_price_inr)}</dd></div>
               <div><dt className="text-ink-500">When</dt><dd className="font-medium">{formatDate(b.booking_date)}, {b.slot_label} ({formatTime(b.slot_start_time)} - {formatTime(b.slot_end_time)})</dd></div>
               <div><dt className="text-ink-500">Customer</dt><dd className="font-medium">{b.customer_name}</dd></div>
-              <div><dt className="text-ink-500">Flat</dt><dd className="font-medium">{b.flat_identifier}</dd></div>
+              {b.township && <div><dt className="text-ink-500">Township</dt><dd className="font-medium">{b.township}</dd></div>}
+              {b.building_name && <div><dt className="text-ink-500">Wing/apartment name</dt><dd className="font-medium">{b.building_name}</dd></div>}
+              {b.flat_number && <div><dt className="text-ink-500">Flat number</dt><dd className="font-medium">{b.flat_number}</dd></div>}
+              {!b.township && !b.building_name && !b.flat_number && <div><dt className="text-ink-500">Flat</dt><dd className="font-medium">{b.flat_identifier}</dd></div>}
               <div><dt className="text-ink-500">Mobile</dt><dd className="font-medium">{b.customer_phone}</dd></div>
               <div><dt className="text-ink-500">Terms accepted</dt><dd className="font-medium">{formatDateTime(b.terms_accepted_at)}</dd></div>
               {b.instructions && <div className="sm:col-span-2"><dt className="text-ink-500">Customer instructions</dt><dd className="whitespace-pre-line font-medium">{b.instructions}</dd></div>}

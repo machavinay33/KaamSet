@@ -4,7 +4,7 @@ export type BookingView = {
   reference: string; service_id: string; service_name: string; price_inr: number; duration_minutes: number | null;
   booking_date: string; slot_label: string; slot_start_time: string; slot_end_time: string;
   status: 'pending' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled' | 'rejected'; payment_status: 'unpaid' | 'paid' | 'refunded';
-  customer_name: string; flat_identifier: string; instructions: string | null; created_at: string;
+  customer_name: string; township: string | null; building_name: string | null; flat_number: string | null; flat_identifier: string; instructions: string | null; created_at: string;
   cancellation_reason: string | null; can_cancel: boolean; can_reschedule: boolean;
 };
 

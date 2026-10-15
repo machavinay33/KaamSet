@@ -14,7 +14,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const from = (f.page - 1) * PAGE_SIZE;
   const [{ data: services }, listRes] = await Promise.all([
     supabase.from('services').select('id, name').order('name'),
-    applyFilters(supabase.from('bookings').select('id, reference, service_name, service_price_inr, customer_name, flat_identifier, booking_date, slot_label, status, payment_status, created_at', { count: 'exact' }), f)
+    applyFilters(supabase.from('bookings').select('id, reference, service_name, service_price_inr, customer_name, township, building_name, flat_number, flat_identifier, booking_date, slot_label, status, payment_status, created_at', { count: 'exact' }), f)
       .order('booking_date', { ascending: false }).order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1),
   ]);
   const rows = (listRes.data ?? []) as any[];
@@ -33,7 +33,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
         <a className="btn-secondary btn-sm" href={`/admin/bookings/export?${qs({})}`}><Download className="h-4 w-4" aria-hidden /> Export CSV</a>
       </div>
       <form method="get" className="card grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-6">
-        <div className="lg:col-span-2"><label className="label" htmlFor="q">Search</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-400" aria-hidden /><input id="q" name="q" defaultValue={f.q} placeholder="Reference, name, mobile, flat" className="input pl-9" /></div></div>
+        <div className="lg:col-span-2"><label className="label" htmlFor="q">Search</label><div className="relative"><Search className="pointer-events-none absolute left-3 top-3 h-4 w-4 text-ink-400" aria-hidden /><input id="q" name="q" defaultValue={f.q} placeholder="Reference, name, mobile, township, flat" className="input pl-9" /></div></div>
         <div><label className="label" htmlFor="status">Status</label><select id="status" name="status" defaultValue={f.status ?? ''} className="input"><option value="">All</option>{STATUSES.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}</select></div>
         <div><label className="label" htmlFor="payment">Payment</label><select id="payment" name="payment" defaultValue={f.payment ?? ''} className="input"><option value="">All</option>{Object.entries(PAYMENT_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></div>
         <div><label className="label" htmlFor="service">Service</label><select id="service" name="service" defaultValue={f.service ?? ''} className="input"><option value="">All</option>{(services ?? []).map((s: any) => <option key={s.id} value={s.id}>{s.name}</option>)}</select></div>
@@ -49,7 +49,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
               {rows.map((b) => (
                 <tr key={b.id} className="hover:bg-brand-50/40">
                   <td className="px-4 py-3"><Link className="font-semibold text-brand-800 underline" href={`/admin/bookings/${b.id}`}>{b.reference}</Link><div className="text-ink-600">{b.service_name}</div></td>
-                  <td className="px-4 py-3">{b.customer_name}<div className="text-ink-500">{b.flat_identifier}</div></td>
+                  <td className="px-4 py-3">{b.customer_name}<div className="text-ink-500">{[b.township, b.building_name, b.flat_number ? `Flat ${b.flat_number}` : null].filter(Boolean).join(' · ') || b.flat_identifier}</div></td>
                   <td className="px-4 py-3">{formatDate(b.booking_date)}<div className="text-ink-500">{b.slot_label}</div></td>
                   <td className="px-4 py-3">{formatINR(b.service_price_inr)}</td>
                   <td className="px-4 py-3"><StatusBadge status={b.status} /></td>

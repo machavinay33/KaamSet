@@ -1,6 +1,6 @@
 # KaamSet - Home chores, sorted.
 
-Hyperlocal home-services booking for residents of **Shiv Kailasa Society, Nagpur**. Next.js (App Router) + TypeScript, Tailwind, Supabase (Postgres, Auth), Framer Motion, React Hook Form + Zod. Deploys to Vercel.
+Hyperlocal home-services booking across **MIHAN, Nagpur**. Next.js (App Router) + TypeScript, Tailwind, Supabase (Postgres, Auth), Framer Motion, React Hook Form + Zod. Deploys to Vercel.
 
 No customer accounts, no payment gateway. Customers book, then view/cancel/reschedule through a **private access link**; the admin manages everything at `/admin`.
 
@@ -18,7 +18,7 @@ cp .env.example .env.local    # fill in values (see below)
 
 ## 3. Run migrations
 Run in order in the Supabase **SQL editor** (or `supabase db push` with the CLI):
-`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql`.
+`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql` -> `0006_mihan_address.sql`.
 
 Optional, **development only**: `supabase/seed.sql` (demo services with placeholder prices). Do not ship demo prices: edit every service in `/admin/services` before launch.
 

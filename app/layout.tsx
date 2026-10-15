@@ -10,10 +10,10 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: { default: 'KaamSet - Home chores, sorted.', template: '%s | KaamSet' },
-  description: 'Book trusted home services for residents of Shiv Kailasa Society, Nagpur. Clear pricing, simple booking, pay after service.',
+  description: 'Book trusted home services across MIHAN, Nagpur. Clear pricing, simple booking, pay after service.',
   openGraph: {
     title: 'KaamSet - Home chores, sorted.',
-    description: 'Home services exclusively for Shiv Kailasa Society residents, Nagpur.',
+    description: 'Home services available across MIHAN, Nagpur.',
     siteName: 'KaamSet', type: 'website', locale: 'en_IN',
     images: [{ url: '/og.png', width: 1200, height: 630, alt: 'KaamSet - Home chores, sorted.' }],
   },

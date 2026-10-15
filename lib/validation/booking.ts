@@ -22,12 +22,17 @@ const isRealDate = (s: string) => {
 };
 
 /** Shared by the browser form and the server endpoint. */
+export const MIHAN_TOWNSHIPS = ['Shiv Khailasa township', 'Moraj Waterfalls', 'Bloomdale', 'First City'] as const;
+
 export const bookingFormSchema = z.object({
   serviceId: z.string().uuid('Choose a service'),
   customerName: z.string().trim().min(2, 'Enter your full name').max(80, 'Name is too long')
     .regex(/^[\p{L}\p{M}][\p{L}\p{M}\s.'-]*$/u, 'Use letters only'),
   customerPhone: z.string().trim().refine(isValidIndianMobile, 'Enter a valid 10-digit mobile number'),
-  flatIdentifier: z.string().trim().min(1, 'Enter your flat / block').max(40, 'Too long')
+  township: z.enum(MIHAN_TOWNSHIPS, { errorMap: () => ({ message: 'Choose your township' }) }),
+  buildingName: z.string().trim().min(1, 'Enter your wing or apartment name').max(80, 'Name is too long')
+    .regex(/^[\p{L}\p{M}0-9][\p{L}\p{M}0-9\s.'’&()/,#-]*$/u, 'Enter a valid wing or apartment name'),
+  flatNumber: z.string().trim().min(1, 'Enter your flat number').max(40, 'Flat number is too long')
     .regex(/^[A-Za-z0-9][A-Za-z0-9\s\-/,.#]*$/, 'Use letters, numbers, - / , . only'),
   bookingDate: z.string().refine(isRealDate, 'Choose a date'),
   slotId: z.string().uuid('Choose a time slot'),

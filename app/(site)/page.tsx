@@ -9,8 +9,8 @@ import { phoneLinks, formatTime, WEEKDAYS } from '@/lib/format';
 export const dynamic = 'force-dynamic';
 
 const FAQ = [
-  ['Who can use KaamSet?', 'KaamSet currently serves residents of Shiv Kailasa Society, Nagpur only. We do not offer services elsewhere.'],
-  ['Do I need an account?', 'No. You book with your name, mobile number and flat details. We give you a private link to view or change your booking.'],
+  ['Who can use KaamSet?', 'KaamSet services are available across MIHAN, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.'],
+  ['Do I need an account?', 'No. You book with your name, mobile number, township, wing/apartment name and flat number. We give you a private link to view or change your booking.'],
   ['When is my booking confirmed?', 'Your request is submitted first. It is confirmed when the KaamSet team accepts it, unless automatic confirmation is switched on. The confirmation page always tells you which applies.'],
   ['How do I pay?', 'There is no online payment on this site. You pay after the service is completed, using the methods listed on the Payments policy page.'],
   ['Can I cancel or reschedule?', 'Yes, from My Bookings, within the time limits shown there. After that, please contact us.'],
@@ -29,11 +29,11 @@ export default async function HomePage() {
         <div className="container-page grid items-center gap-10 py-12 md:grid-cols-[1.15fr_1fr] md:py-20">
           <div>
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-medium text-brand-800">
-              <MapPin className="h-4 w-4" aria-hidden /> Currently serving {settings['society.name']}
+              <MapPin className="h-4 w-4" aria-hidden /> Serving MIHAN
             </p>
             <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">Home chores, sorted.</h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-              Cleaning, repairs and everyday home help for residents of {settings['society.name']}. Pick a service, choose a slot, and pay after the work is done.
+              Cleaning, repairs and everyday home help across MIHAN. Pick a service, choose a slot, and pay after the work is done.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/book" className="btn-primary px-6 py-3 text-base">Book a Service <ArrowRight className="h-4 w-4" aria-hidden /></Link>
@@ -103,7 +103,7 @@ export default async function HomePage() {
           {[
             [CalendarCheck, 'Convenient', 'Book in a minute from your phone. No app download, no account.'],
             [IndianRupee, 'Clear pricing', 'The price you see is the price recorded on your booking.'],
-            [ShieldCheck, 'Made for one society', `Built only for ${settings['society.name']}, so scheduling stays local and simple.`],
+            [ShieldCheck, 'Serving MIHAN communities', 'Book home services across MIHAN, with your township selected at booking.'],
           ].map(([Icon, t, d], i) => {
             const I = Icon as typeof ShieldCheck;
             return <div key={i} className="card p-6"><I className="h-6 w-6 text-brand-700" aria-hidden /><h3 className="mt-3 text-lg font-semibold">{t as string}</h3><p className="mt-1.5 text-sm text-ink-600">{d as string}</p></div>;
@@ -123,7 +123,7 @@ export default async function HomePage() {
       <section className="container-page py-10">
         <div className="rounded-3xl border border-brand-200 bg-brand-50 p-6 sm:p-8">
           <h2 className="text-xl font-bold sm:text-2xl">Service area</h2>
-          <p className="mt-2 max-w-2xl text-ink-700">KaamSet currently serves {settings['society.name']}, {settings['society.location']} only. We do not serve other societies or the wider city.</p>
+          <p className="mt-2 max-w-2xl text-ink-700">KaamSet services are available across MIHAN, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.</p>
           <div className="mt-5 flex flex-wrap gap-3">
             <Link href="/contact" className="btn-secondary">Contact details</Link>
             {wa && <a href={wa.wa} className="btn-primary" rel="noopener noreferrer" target="_blank"><MessageCircle className="h-4 w-4" aria-hidden /> Chat on WhatsApp</a>}

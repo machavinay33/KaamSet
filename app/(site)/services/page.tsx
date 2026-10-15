@@ -3,7 +3,7 @@ import { getCatalog, getSettings } from '@/lib/data/public';
 import { ServiceCard } from '@/components/ServiceCard';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Services', description: 'Home services available to Shiv Kailasa Society residents, with prices.' };
+export const metadata: Metadata = { title: 'Services', description: 'Home services available across MIHAN, with prices.' };
 
 export default async function ServicesPage() {
   const [{ categories, services, error }, settings] = await Promise.all([getCatalog(), getSettings()]);
@@ -13,7 +13,7 @@ export default async function ServicesPage() {
   return (
     <div className="container-page py-10 sm:py-14">
       <h1 className="text-3xl font-bold sm:text-4xl">Services</h1>
-      <p className="mt-2 max-w-2xl text-ink-600">Available to residents of {settings['society.name']}. Prices are shown in rupees; you pay after the service.</p>
+      <p className="mt-2 text-ink-600">Available across MIHAN. Prices are shown in rupees; you pay after the service.</p>
       {!enabled && <p role="status" className="mt-5 rounded-xl bg-amber-50 px-4 py-3 text-sm text-amber-900">Bookings are paused for now. You can still browse services.</p>}
       {error && <p className="mt-6 rounded-2xl bg-amber-50 p-5 text-amber-900">We could not load services right now. Please refresh in a moment.</p>}
       {!error && groups.length === 0 && <p className="card mt-8 p-8 text-center text-ink-600">No services are listed yet. Please check back soon.</p>}

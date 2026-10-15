@@ -32,7 +32,7 @@ export function applyFilters<T>(query: T, f: BookingFilters): T {
   if (f.to) q = q.lte('booking_date', f.to);
   if (f.q) {
     const t = f.q.replace(/[%,()*\\:"'.]/g, ' ').trim();
-    if (t) q = q.or(`reference.ilike.%${t}%,customer_name.ilike.%${t}%,customer_phone.ilike.%${t}%,flat_identifier.ilike.%${t}%`);
+    if (t) q = q.or(`reference.ilike.%${t}%,customer_name.ilike.%${t}%,customer_phone.ilike.%${t}%,township.ilike.%${t}%,building_name.ilike.%${t}%,flat_number.ilike.%${t}%,flat_identifier.ilike.%${t}%`);
   }
   return q as T;
 }

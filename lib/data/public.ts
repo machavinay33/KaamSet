@@ -13,6 +13,7 @@ export async function getSettings(): Promise<Settings> {
   const { data } = await publicClient().from('business_settings').select('key, value');
   const out: Settings = defaultSettings();
   for (const row of data ?? []) if (row.key in out) out[row.key] = row.value;
+  if (!String(out['contact.whatsapp'] ?? '').trim()) out['contact.whatsapp'] = '+91 95293 41654';
   return out;
 }
 

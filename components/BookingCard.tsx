@@ -34,7 +34,10 @@ export function BookingCard({ booking, accessKey, onChanged }: { booking: Bookin
         <div><dt className="text-ink-500">Amount (pay after service)</dt><dd className="font-medium">{formatINR(booking.price_inr)}</dd></div>
         <div><dt className="text-ink-500">Date</dt><dd className="font-medium">{formatDate(booking.booking_date)}</dd></div>
         <div><dt className="text-ink-500">Time</dt><dd className="font-medium">{booking.slot_label}, {formatTime(booking.slot_start_time)} - {formatTime(booking.slot_end_time)}</dd></div>
-        <div><dt className="text-ink-500">Flat</dt><dd className="font-medium">{booking.flat_identifier}</dd></div>
+        {booking.township && <div><dt className="text-ink-500">Township</dt><dd className="font-medium">{booking.township}</dd></div>}
+        {booking.building_name && <div><dt className="text-ink-500">Wing/apartment name</dt><dd className="font-medium">{booking.building_name}</dd></div>}
+        {booking.flat_number && <div><dt className="text-ink-500">Flat number</dt><dd className="font-medium">{booking.flat_number}</dd></div>}
+        {!booking.township && !booking.building_name && !booking.flat_number && <div><dt className="text-ink-500">Flat</dt><dd className="font-medium">{booking.flat_identifier}</dd></div>}
         {booking.instructions && <div><dt className="text-ink-500">Your instructions</dt><dd className="font-medium">{booking.instructions}</dd></div>}
       </dl>
       {booking.status === 'pending' && <p className="mt-4 rounded-xl bg-amber-50 p-3 text-sm text-amber-900">Request received. It is confirmed only when the KaamSet team accepts it.</p>}

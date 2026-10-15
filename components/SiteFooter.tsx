@@ -11,7 +11,7 @@ export function SiteFooter({ settings }: { settings: Settings }) {
         <div>
           <Image src="/logo.png" alt="KaamSet - Home chores, sorted." width={220} height={62} className="h-14 w-auto" />
           <p className="mt-4 max-w-sm text-sm text-ink-600">
-            Currently serving {settings['society.name']}, {settings['society.location']}. KaamSet is not available outside this society.
+            Serving MIHAN, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.
           </p>
         </div>
         <div>
