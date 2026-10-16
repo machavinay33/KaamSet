@@ -1,7 +1,7 @@
 # Launch checklist
 
 ## Supabase
-- [ ] Migrations 0001-0005 applied in order; `supabase/tests/rls_verification.sql` all PASS
+- [ ] Migrations 0001-0008 applied in order; `supabase/tests/rls_verification.sql` all PASS
 - [ ] Demo seed NOT loaded (or all demo prices/services replaced)
 - [ ] Email sign-ups disabled; only intended admin users exist
 - [ ] Service-role key stored only in Vercel env (never in client code, repo or logs)
@@ -14,9 +14,9 @@
 
 ## Admin
 - [ ] First admin created with a strong unique password; admin login works; a non-admin account is rejected
-- [ ] Settings filled: contact, hours, payment methods, cancellation/reschedule limits, auto-confirm choice
+- [ ] Settings filled: contact, hours, payment methods, cancellation/reschedule limits; all requests are manually confirmed
 - [ ] Policies reviewed by someone qualified (the shipped texts are templates, including the privacy policy)
-- [ ] Real services, prices, slots, capacities and holidays entered
+- [ ] Real services and prices entered; blocked dates and holidays configured as needed
 
 ## Security
 - [ ] Rate limiting verified: more than 8 booking POSTs / 10 min from one IP returns 429
@@ -25,11 +25,11 @@
 - [ ] `npm audit` reviewed; dependencies up to date
 
 ## End-to-end tests (on production URL)
-- [ ] Resident books a service; confirmation shows reference, service, date, slot, status
+- [ ] Customer requests a service and preferred date/time; confirmation shows reference, service, date/time and Pending status
 - [ ] Resubmitting/double-clicking does not create a second booking
-- [ ] Fill a slot to capacity; the next attempt shows "slot full"
+- [ ] A customer-requested time is reviewed and manually confirmed by an admin
 - [ ] Booking visible in My Bookings with its private link, and NOT visible from another browser without the link
 - [ ] Admin sees it, confirms it, marks in progress, completed, records payment; resident sees updated status
-- [ ] Customer cancel/reschedule respects the configured time limits
+- [ ] Customer cancel/reschedule respects the configured time limits; a reschedule returns to Pending for admin review
 - [ ] CSV export opens correctly; audit log rows appear
 - [ ] Mobile check on Android Chrome and iPhone Safari; 404 page and error states

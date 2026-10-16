@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { requireAdmin } from '@/lib/auth/admin';
-import { formatDate, formatINR } from '@/lib/format';
+import { formatDate, formatINR, formatTime } from '@/lib/format';
 import { StatusBadge } from '@/components/StatusBadge';
 
 export const metadata = { title: 'Admin overview', robots: { index: false } };
@@ -9,7 +9,7 @@ export default async function AdminHome() {
   const { supabase } = await requireAdmin();
   const [{ data: stats, error }, { data: pending }] = await Promise.all([
     supabase.rpc('admin_dashboard_stats'),
-    supabase.from('bookings').select('id, reference, service_name, customer_name, booking_date, slot_label, status').eq('status', 'pending').order('booking_date').limit(8),
+    supabase.from('bookings').select('id, reference, service_name, customer_name, booking_date, preferred_time, slot_label, status').eq('status', 'pending').order('booking_date').limit(8),
   ]);
   if (error || !stats) return <p role="alert" className="card p-6 text-red-800">Could not load statistics. Please refresh.</p>;
   const cards: [string, number, string?][] = [
@@ -41,7 +41,7 @@ export default async function AdminHome() {
             {(pending ?? []).map((b: any) => (
               <li key={b.id}><Link href={`/admin/bookings/${b.id}`} className="flex flex-wrap items-center justify-between gap-2 px-5 py-4 hover:bg-brand-50">
                 <span><span className="font-semibold">{b.reference}</span> <span className="text-ink-600">- {b.service_name} for {b.customer_name}</span></span>
-                <span className="flex items-center gap-3 text-sm text-ink-600">{formatDate(b.booking_date)}, {b.slot_label} <StatusBadge status={b.status} /></span></Link></li>
+                <span className="flex items-center gap-3 text-sm text-ink-600">{formatDate(b.booking_date)}, {b.preferred_time ? formatTime(b.preferred_time) : b.slot_label} <StatusBadge status={b.status} /></span></Link></li>
             ))}
           </ul>
         )}

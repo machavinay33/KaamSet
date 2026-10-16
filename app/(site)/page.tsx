@@ -1,23 +1,23 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowRight, CalendarCheck, IndianRupee, MapPin, MessageCircle, ShieldCheck, Phone, ListChecks, CalendarDays, Handshake } from 'lucide-react';
-import { getCatalog, getSettings, getSlots } from '@/lib/data/public';
+import { ArrowRight, CalendarCheck, IndianRupee, MapPin, MessageCircle, ShieldCheck, Phone, ListChecks, Handshake } from 'lucide-react';
+import { getCatalog, getSettings } from '@/lib/data/public';
 import { ServiceCard } from '@/components/ServiceCard';
 import { Reveal } from '@/components/Reveal';
-import { phoneLinks, formatTime, WEEKDAYS } from '@/lib/format';
+import { phoneLinks } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
 
 const FAQ = [
   ['Who can use KaamSet?', 'KaamSet services are available across MIHAN, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.'],
   ['Do I need an account?', 'No. You book with your name, mobile number, township, wing/apartment name and flat number. We give you a private link to view or change your booking.'],
-  ['When is my booking confirmed?', 'Your request is submitted first. It is confirmed when the KaamSet team accepts it, unless automatic confirmation is switched on. The confirmation page always tells you which applies.'],
+  ['When is my booking confirmed?', 'Your request is submitted first. It is confirmed when the KaamSet team reviews and accepts your preferred date and time.'],
   ['How do I pay?', 'There is no online payment on this site. You pay after the service is completed, using the methods listed on the Payments policy page.'],
   ['Can I cancel or reschedule?', 'Yes, from My Bookings, within the time limits shown there. After that, please contact us.'],
 ];
 
 export default async function HomePage() {
-  const [{ services, error }, settings, slots] = await Promise.all([getCatalog(), getSettings(), getSlots()]);
+  const [{ services, error }, settings] = await Promise.all([getCatalog(), getSettings()]);
   const bookingEnabled = settings['booking.enabled'] !== false;
   const wa = phoneLinks(settings['contact.whatsapp']);
   const phone = phoneLinks(settings['contact.phone']);
@@ -33,7 +33,7 @@ export default async function HomePage() {
             </p>
             <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">Home chores, sorted.</h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-              Cleaning, repairs and everyday home help across MIHAN. Pick a service, choose a slot, and pay after the work is done.
+              Cleaning, repairs and everyday home help across MIHAN. Pick a service, share your preferred date and time, and pay after the work is done.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/book" className="btn-primary px-6 py-3 text-base">Book a Service <ArrowRight className="h-4 w-4" aria-hidden /></Link>
@@ -43,19 +43,6 @@ export default async function HomePage() {
           </div>
           <div className="card relative p-6 sm:p-8">
             <Image src="/logo.png" alt="KaamSet - Home chores, sorted." width={520} height={147} className="mx-auto h-auto w-full max-w-sm" priority />
-            {slots.length > 0 && (
-              <div className="mt-6 border-t border-line pt-5">
-                <p className="flex items-center gap-2 text-sm font-semibold text-ink-900"><CalendarDays className="h-4 w-4 text-brand-700" aria-hidden /> Service time slots</p>
-                <ul className="mt-3 space-y-1.5 text-sm text-ink-600">
-                  {slots.map((s) => (
-                    <li key={s.id} className="flex justify-between gap-3">
-                      <span>{s.label}: {formatTime(s.start_time)} - {formatTime(s.end_time)}</span>
-                      <span className="text-ink-500">{s.weekdays.length === 7 ? 'Every day' : s.weekdays.map((d) => WEEKDAYS[d]).join(', ')}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
           </div>
         </div>
       </section>
@@ -82,8 +69,8 @@ export default async function HomePage() {
           <ol className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               [ListChecks, 'Choose a service', 'Pick what you need and see the price up front.'],
-              [CalendarCheck, 'Pick a date and slot', 'Only slots with real availability are shown.'],
-              [Handshake, 'We confirm, you pay after', 'The team confirms your request. You pay once the work is done.'],
+              [CalendarCheck, 'Share your preferred time', 'Tell us the date and time that works for you.'],
+              [Handshake, 'We review and confirm', 'The team checks your request and confirms the time. You pay once the work is done.'],
             ].map(([Icon, t, d], i) => {
               const I = Icon as typeof ListChecks;
               return (

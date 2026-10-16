@@ -19,13 +19,12 @@ export default async function BookingDetail({ params, searchParams }: { params: 
   const { supabase } = await requireAdmin();
   const { data: b } = await supabase.from('bookings').select('*').eq('id', id).maybeSingle();
   if (!b) notFound();
-  const [hist, pays, notes, assigned, workers, slots] = await Promise.all([
+  const [hist, pays, notes, assigned, workers] = await Promise.all([
     supabase.from('booking_status_history').select('*').eq('booking_id', id).order('created_at'),
     supabase.from('payment_records').select('*').eq('booking_id', id).order('recorded_at'),
     supabase.from('booking_notes').select('*').eq('booking_id', id).order('created_at', { ascending: false }),
     supabase.from('booking_assignments').select('worker_id, workers(name)').eq('booking_id', id),
     supabase.from('workers').select('id, name').eq('is_active', true).order('name'),
-    supabase.from('time_slots').select('id, label, start_time, end_time').eq('is_active', true).order('sort_order'),
   ]);
   const status = b.status as BookingStatus;
   const links = phoneLinks(b.customer_phone);
@@ -47,7 +46,7 @@ export default async function BookingDetail({ params, searchParams }: { params: 
           <section className="card p-5"><h2 className="text-base font-semibold">Details</h2>
             <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
               <div><dt className="text-ink-500">Service (price snapshot)</dt><dd className="font-medium">{b.service_name} · {formatINR(b.service_price_inr)}</dd></div>
-              <div><dt className="text-ink-500">When</dt><dd className="font-medium">{formatDate(b.booking_date)}, {b.slot_label} ({formatTime(b.slot_start_time)} - {formatTime(b.slot_end_time)})</dd></div>
+              <div><dt className="text-ink-500">{b.preferred_time ? 'Requested date and time' : 'When'}</dt><dd className="font-medium">{formatDate(b.booking_date)}, {b.preferred_time ? formatTime(b.preferred_time) : `${b.slot_label} (${formatTime(b.slot_start_time)} - ${formatTime(b.slot_end_time)})`}</dd></div>
               <div><dt className="text-ink-500">Customer</dt><dd className="font-medium">{b.customer_name}</dd></div>
               {b.township && <div><dt className="text-ink-500">Township</dt><dd className="font-medium">{b.township}</dd></div>}
               {b.building_name && <div><dt className="text-ink-500">Wing/apartment name</dt><dd className="font-medium">{b.building_name}</dd></div>}
@@ -111,11 +110,11 @@ export default async function BookingDetail({ params, searchParams }: { params: 
             )}
           </section>
           {canReschedule && (
-            <section className="card p-5"><h2 className="text-base font-semibold">Reschedule</h2>
-              <ConfirmForm action={rescheduleAction} label="Change date or slot" variant="secondary" title="Reschedule booking" description="Capacity and blocked dates are still enforced." confirmLabel="Reschedule">
+            <section className="card p-5"><h2 className="text-base font-semibold">Requested time</h2>
+              <ConfirmForm action={rescheduleAction} label="Update requested date/time" variant="secondary" title="Update requested time" description="This updates the requested date and time only. A pending booking remains pending; use Confirm to accept it." confirmLabel="Save requested time">
                 <input type="hidden" name="id" value={b.id} />
                 <div><label className="label" htmlFor="rdate">New date</label><input id="rdate" name="date" type="date" required min={todayIST()} defaultValue={b.booking_date} className="input" /></div>
-                <div><label className="label" htmlFor="rslot">Slot</label><select id="rslot" name="slot" className="input" defaultValue={b.slot_id}>{(slots.data ?? []).map((s: any) => <option key={s.id} value={s.id}>{s.label} ({formatTime(s.start_time)} - {formatTime(s.end_time)})</option>)}</select></div>
+                <div><label className="label" htmlFor="rtime">Preferred time</label><input id="rtime" name="preferred_time" type="time" required defaultValue={(b.preferred_time ?? b.slot_start_time).slice(0, 5)} className="input" /></div>
                 <div><label className="label" htmlFor="rreason">Reason (optional)</label><input id="rreason" name="reason" maxLength={300} className="input" /></div>
               </ConfirmForm>
             </section>

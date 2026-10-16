@@ -7,7 +7,7 @@ import { messageFor } from '@/lib/booking/messages';
 import { log } from '@/lib/logger';
 
 export const dynamic = 'force-dynamic';
-const STATUS_FOR: Record<string, number> = { slot_full: 409, already_booked: 409, too_many_active: 409 };
+const STATUS_FOR: Record<string, number> = { already_booked: 409, too_many_active: 409 };
 
 export async function POST(req: Request) {
   if (!sameOrigin(req)) return jsonError(403, 'forbidden', 'Request blocked.');
@@ -29,7 +29,7 @@ export async function POST(req: Request) {
     const reference = generateReference();
     // Price, status and payment status are NEVER taken from the client: the DB snapshots them from the services table.
     const { data, error } = await db.rpc('create_booking', {
-      p_service_id: v.serviceId, p_date: v.bookingDate, p_slot_id: v.slotId,
+      p_service_id: v.serviceId, p_date: v.bookingDate, p_preferred_time: v.preferredTime,
       p_name: cleanText(v.customerName), p_phone: normalizePhone(v.customerPhone), p_township: v.township,
       p_building_name: cleanText(v.buildingName), p_flat_number: cleanText(v.flatNumber),
       p_instructions: cleanMultiline(v.instructions ?? ''), p_reference: reference,

@@ -3,7 +3,7 @@ import { getAdmin } from '@/lib/auth/admin';
 import { applyFilters, csvCell, parseFilters } from '@/lib/admin/bookings-query';
 
 export const dynamic = 'force-dynamic';
-const COLS = ['reference', 'created_at', 'booking_date', 'slot_label', 'service_name', 'service_price_inr', 'customer_name', 'customer_phone', 'township', 'building_name', 'flat_number', 'flat_identifier', 'status', 'payment_status', 'cancellation_reason'] as const;
+const COLS = ['reference', 'created_at', 'booking_date', 'preferred_time', 'slot_label', 'service_name', 'service_price_inr', 'customer_name', 'customer_phone', 'township', 'building_name', 'flat_number', 'flat_identifier', 'status', 'payment_status', 'cancellation_reason'] as const;
 
 export async function GET(req: Request) {
   const admin = await getAdmin();

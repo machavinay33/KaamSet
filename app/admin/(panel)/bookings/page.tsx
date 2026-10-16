@@ -3,7 +3,7 @@ import { Download, Search } from 'lucide-react';
 import { requireAdmin } from '@/lib/auth/admin';
 import { applyFilters, PAGE_SIZE, parseFilters } from '@/lib/admin/bookings-query';
 import { STATUSES, STATUS_LABELS, PAYMENT_LABELS } from '@/lib/booking/rules';
-import { formatDate, formatINR } from '@/lib/format';
+import { formatDate, formatINR, formatTime } from '@/lib/format';
 import { PaymentBadge, StatusBadge } from '@/components/StatusBadge';
 
 export const metadata = { title: 'Bookings', robots: { index: false } };
@@ -14,7 +14,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
   const from = (f.page - 1) * PAGE_SIZE;
   const [{ data: services }, listRes] = await Promise.all([
     supabase.from('services').select('id, name').order('name'),
-    applyFilters(supabase.from('bookings').select('id, reference, service_name, service_price_inr, customer_name, township, building_name, flat_number, flat_identifier, booking_date, slot_label, status, payment_status, created_at', { count: 'exact' }), f)
+    applyFilters(supabase.from('bookings').select('id, reference, service_name, service_price_inr, customer_name, township, building_name, flat_number, flat_identifier, booking_date, preferred_time, slot_label, status, payment_status, created_at', { count: 'exact' }), f)
       .order('booking_date', { ascending: false }).order('created_at', { ascending: false }).range(from, from + PAGE_SIZE - 1),
   ]);
   const rows = (listRes.data ?? []) as any[];
@@ -50,7 +50,7 @@ export default async function BookingsPage({ searchParams }: { searchParams: Pro
                 <tr key={b.id} className="hover:bg-brand-50/40">
                   <td className="px-4 py-3"><Link className="font-semibold text-brand-800 underline" href={`/admin/bookings/${b.id}`}>{b.reference}</Link><div className="text-ink-600">{b.service_name}</div></td>
                   <td className="px-4 py-3">{b.customer_name}<div className="text-ink-500">{[b.township, b.building_name, b.flat_number ? `Flat ${b.flat_number}` : null].filter(Boolean).join(' · ') || b.flat_identifier}</div></td>
-                  <td className="px-4 py-3">{formatDate(b.booking_date)}<div className="text-ink-500">{b.slot_label}</div></td>
+                  <td className="px-4 py-3">{formatDate(b.booking_date)}<div className="text-ink-500">{b.preferred_time ? formatTime(b.preferred_time) : b.slot_label}</div></td>
                   <td className="px-4 py-3">{formatINR(b.service_price_inr)}</td>
                   <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                   <td className="px-4 py-3"><PaymentBadge status={b.payment_status} /></td>

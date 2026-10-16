@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
@@ -8,40 +8,28 @@ import { AlertTriangle, Loader2 } from 'lucide-react';
 import { bookingFormSchema, MIHAN_TOWNSHIPS, type BookingFormValues } from '@/lib/validation/booking';
 import { saveBooking } from '@/lib/client/saved-bookings';
 import { addDays, formatDate, formatINR, formatTime, todayIST } from '@/lib/format';
-import { SlotPicker } from '@/components/SlotPicker';
 
 export type ServiceOpt = {
   id: string; slug: string; name: string; price_inr: number; price_note: string | null; duration_minutes: number | null;
   is_bookable: boolean; unavailable_message: string | null; max_advance_days: number | null;
 };
-type Props = { services: ServiceOpt[]; initialServiceId?: string; bookingEnabled: boolean; autoConfirm: boolean; maxAdvanceDays: number; paymentNote: string };
+type Props = { services: ServiceOpt[]; initialServiceId?: string; bookingEnabled: boolean; maxAdvanceDays: number; paymentNote: string };
 
-export function BookingForm({ services, initialServiceId, bookingEnabled, autoConfirm, maxAdvanceDays, paymentNote }: Props) {
+export function BookingForm({ services, initialServiceId, bookingEnabled, maxAdvanceDays, paymentNote }: Props) {
   const router = useRouter();
   const [submitting, setSubmitting] = useState(false);
   const [banner, setBanner] = useState<{ kind: 'error' | 'warn'; text: string } | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0);
   // One idempotency key per form session: a retry after a lost response returns the same booking instead of creating a second.
   const [idempotencyKey] = useState(() => crypto.randomUUID());
   const today = useMemo(() => todayIST(), []);
 
-  const { register, handleSubmit, watch, setValue, setError, formState: { errors } } = useForm<BookingFormValues>({
+  const { register, handleSubmit, watch, setError, formState: { errors } } = useForm<BookingFormValues>({
     resolver: zodResolver(bookingFormSchema),
-    defaultValues: { serviceId: initialServiceId ?? '', customerName: '', customerPhone: '', buildingName: '', flatNumber: '', bookingDate: '', slotId: '', instructions: '', acceptTerms: false, website: '' },
+    defaultValues: { serviceId: initialServiceId ?? '', customerName: '', customerPhone: '', buildingName: '', flatNumber: '', bookingDate: '', preferredTime: '', instructions: '', acceptTerms: false, website: '' },
   });
-  const serviceId = watch('serviceId'); const bookingDate = watch('bookingDate'); const slotId = watch('slotId');
+  const serviceId = watch('serviceId'); const bookingDate = watch('bookingDate'); const preferredTime = watch('preferredTime');
   const service = services.find((s) => s.id === serviceId);
   const maxDate = addDays(today, service?.max_advance_days ?? maxAdvanceDays);
-
-  useEffect(() => { setValue('slotId', ''); }, [serviceId, bookingDate, setValue]);
-
-  const [slotLabel, setSlotLabel] = useState('');
-  useEffect(() => {
-    if (!slotId || !serviceId || !bookingDate) { setSlotLabel(''); return; }
-    fetch(`/api/availability?serviceId=${serviceId}&date=${bookingDate}`).then((r) => r.json()).then((j) => {
-      const s = (j.slots ?? []).find((x: any) => x.id === slotId); setSlotLabel(s ? `${s.label}, ${formatTime(s.start_time)} - ${formatTime(s.end_time)}` : '');
-    }).catch(() => setSlotLabel(''));
-  }, [slotId, serviceId, bookingDate]);
 
   async function onSubmit(values: BookingFormValues) {
     if (submitting) return;
@@ -58,7 +46,7 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
         Object.entries(json.fieldErrors as Record<string, string[]>).forEach(([k, v]) => setError(k as keyof BookingFormValues, { message: v[0] }));
         setBanner({ kind: 'error', text: json.message });
       } else if (res.status === 409 || json.code === 'too_soon' || json.code === 'blocked_date') {
-        setBanner({ kind: 'warn', text: json.message }); setValue('slotId', ''); setRefreshKey((k) => k + 1);
+        setBanner({ kind: 'warn', text: json.message });
       } else {
         setBanner({ kind: 'error', text: json.message ?? 'Something went wrong. Please try again.' });
       }
@@ -76,7 +64,7 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
         <input type="text" tabIndex={-1} autoComplete="off" aria-hidden="true" className="hidden" {...register('website')} />
         {banner && <div role="alert" className={`flex gap-3 rounded-xl p-4 text-sm ${banner.kind === 'warn' ? 'bg-amber-50 text-amber-900' : 'bg-red-50 text-red-800'}`}><AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />{banner.text}</div>}
 
-        <fieldset className="card space-y-4 p-5"><legend className="px-1 text-base font-semibold">1. Service and time</legend>
+        <fieldset className="card space-y-4 p-5"><legend className="px-1 text-base font-semibold">1. Service and schedule</legend>
           <div>
             <label htmlFor="serviceId" className="label">Service</label>
             <select id="serviceId" className="input" {...register('serviceId')} aria-invalid={!!errors.serviceId}>
@@ -92,9 +80,10 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
             {errors.bookingDate && <p className="field-error">{errors.bookingDate.message}</p>}
           </div>
           <div>
-            <span className="label">Time slot</span>
-            <SlotPicker serviceId={serviceId} date={bookingDate} value={slotId} onChange={(id) => setValue('slotId', id, { shouldValidate: true })} refreshKey={refreshKey} />
-            {errors.slotId && <p className="field-error">{errors.slotId.message}</p>}
+            <label htmlFor="preferredTime" className="label">Preferred time</label>
+            <input id="preferredTime" type="time" className="input" {...register('preferredTime')} aria-invalid={!!errors.preferredTime} />
+            <p className="text-xs text-ink-500">Choose the time you prefer, such as 1:00 PM. The KaamSet team will review and confirm it.</p>
+            {errors.preferredTime && <p className="field-error">{errors.preferredTime.message}</p>}
           </div>
         </fieldset>
 
@@ -120,11 +109,11 @@ export function BookingForm({ services, initialServiceId, bookingEnabled, autoCo
           <dl className="space-y-2 text-sm">
             <div className="flex justify-between gap-3"><dt className="text-ink-600">Service</dt><dd className="text-right font-medium">{service?.name ?? '-'}</dd></div>
             <div className="flex justify-between gap-3"><dt className="text-ink-600">Date</dt><dd className="text-right font-medium">{bookingDate ? formatDate(bookingDate) : '-'}</dd></div>
-            <div className="flex justify-between gap-3"><dt className="text-ink-600">Slot</dt><dd className="text-right font-medium">{slotLabel || '-'}</dd></div>
+            <div className="flex justify-between gap-3"><dt className="text-ink-600">Preferred time</dt><dd className="text-right font-medium">{preferredTime ? formatTime(preferredTime) : '-'}</dd></div>
             <div className="flex justify-between gap-3 border-t border-line pt-3 text-base"><dt className="font-semibold">Price</dt><dd className="font-display font-bold">{service ? formatINR(service.price_inr) : '-'}</dd></div>
           </dl>
           <p className="text-xs text-ink-600">{paymentNote}</p>
-          <p className="rounded-xl bg-brand-50 p-3 text-xs text-ink-700">{autoConfirm ? 'Your booking is confirmed automatically once it is submitted.' : 'Submitting sends a request. It is confirmed only when the KaamSet team accepts it.'}</p>
+          <p className="rounded-xl bg-brand-50 p-3 text-xs text-ink-700">Submitting sends a request. Your preferred time is confirmed only when the KaamSet team accepts it.</p>
           <button type="submit" className="btn-primary w-full" disabled={submitting || (!!service && !service.is_bookable)}>
             {submitting ? <><Loader2 className="h-4 w-4 animate-spin" aria-hidden /> Submitting...</> : 'Submit booking request'}
           </button>

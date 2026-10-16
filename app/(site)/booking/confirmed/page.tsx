@@ -11,7 +11,7 @@ export default async function ConfirmedPage() {
   return (
     <div className="container-page max-w-3xl py-10 sm:py-14">
       <h1 className="mb-6 text-3xl font-bold">Booking summary</h1>
-      <ConfirmedClient autoConfirm={s['booking.auto_confirm'] === true} whatsappHref={phoneLinks(s['contact.whatsapp'])?.wa ?? null} />
+      <ConfirmedClient whatsappHref={phoneLinks(s['contact.whatsapp'])?.wa ?? null} />
     </div>
   );
 }

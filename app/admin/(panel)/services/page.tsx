@@ -11,15 +11,11 @@ export const metadata = { title: 'Services', robots: { index: false } };
 export default async function ServicesAdmin({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const flash = flashFrom(await searchParams);
   const { supabase } = await requireAdmin();
-  const [s, c, t, ss] = await Promise.all([
+  const [s, c] = await Promise.all([
     supabase.from('services').select('*').order('sort_order').order('name'),
     supabase.from('service_categories').select('*').order('sort_order').order('name'),
-    supabase.from('time_slots').select('id, label, start_time').order('sort_order'),
-    supabase.from('service_slots').select('service_id, slot_id'),
   ]);
-  const services = (s.data ?? []) as any[]; const cats = (c.data ?? []) as any[]; const slots = (t.data ?? []) as any[];
-  const slotMap = new Map<string, string[]>();
-  (ss.data ?? []).forEach((r: any) => slotMap.set(r.service_id, [...(slotMap.get(r.service_id) ?? []), r.slot_id]));
+  const services = (s.data ?? []) as any[]; const cats = (c.data ?? []) as any[];
   const flag = (id: string, f: string, v: boolean) => (
     <><input type="hidden" name="id" value={id} /><input type="hidden" name="flag" value={f} /><input type="hidden" name="value" value={String(v)} /></>
   );
@@ -27,7 +23,7 @@ export default async function ServicesAdmin({ searchParams }: { searchParams: Pr
     <div className="space-y-8">
       <h1 className="text-2xl font-bold">Services</h1>
       <Flash {...flash} />
-      <details className="card p-5"><summary className="cursor-pointer text-base font-semibold">Add a service</summary><div className="mt-4"><ServiceForm categories={cats} slots={slots} /></div></details>
+      <details className="card p-5"><summary className="cursor-pointer text-base font-semibold">Add a service</summary><div className="mt-4"><ServiceForm categories={cats} /></div></details>
 
       <section className="space-y-3" aria-label="Service list">
         {services.length === 0 && <p className="card p-8 text-center text-ink-600">No services yet. Add your first service above.</p>}
@@ -42,7 +38,7 @@ export default async function ServicesAdmin({ searchParams }: { searchParams: Pr
                 <ConfirmForm action={setServiceFlagAction} variant={sv.is_active ? 'danger' : 'secondary'} label={sv.is_active ? 'Deactivate' : 'Activate'} title={sv.is_active ? 'Hide this service from the website?' : 'Show this service on the website?'} description="Existing bookings keep their original service name and price." confirmLabel="Yes, continue">{flag(sv.id, 'is_active', !sv.is_active)}</ConfirmForm>
               </div>
             </div>
-            <details className="mt-3"><summary className="cursor-pointer text-sm font-semibold text-brand-800">Edit details</summary><div className="mt-4 border-t border-line pt-4"><ServiceForm service={sv} categories={cats} slots={slots} selectedSlotIds={slotMap.get(sv.id) ?? []} /></div></details>
+            <details className="mt-3"><summary className="cursor-pointer text-sm font-semibold text-brand-800">Edit details</summary><div className="mt-4 border-t border-line pt-4"><ServiceForm service={sv} categories={cats} /></div></details>
           </article>
         ))}
       </section>

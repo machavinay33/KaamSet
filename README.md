@@ -18,7 +18,7 @@ cp .env.example .env.local    # fill in values (see below)
 
 ## 3. Run migrations
 Run in order in the Supabase **SQL editor** (or `supabase db push` with the CLI):
-`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql` -> `0006_mihan_address.sql` -> `0007_service_images.sql`.
+`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql` -> `0006_mihan_address.sql` -> `0007_service_images.sql` -> `0008_preferred_time.sql`.
 
 Optional, **development only**: `supabase/seed.sql` (demo services with placeholder prices). Do not ship demo prices: edit every service in `/admin/services` before launch.
 
@@ -37,7 +37,7 @@ Sign in at `/admin/login`. There is no public admin registration; users without 
 npm run dev          # http://localhost:3000
 npm run verify       # lint + typecheck + tests + production build
 ```
-First steps in `/admin/settings`: contact phone/WhatsApp (shown only when filled), policies (review the templates), payment methods, booking rules. Then `/admin/services` and `/admin/availability` (slots and holidays).
+First steps in `/admin/settings`: contact phone/WhatsApp (shown only when filled), policies (review the templates), payment methods, booking rules. Then `/admin/services` and `/admin/availability` (blocked dates and holidays). Customers enter a preferred time; every booking request remains Pending until the team confirms it.
 
 ## 6. Deploy to Vercel
 1. Push to GitHub, import the repo in Vercel (framework: Next.js).
@@ -45,8 +45,8 @@ First steps in `/admin/settings`: contact phone/WhatsApp (shown only when filled
 3. Deploy. **Custom domain:** Vercel > Settings > Domains > add domain, set the DNS records it shows, wait for the certificate, then update `NEXT_PUBLIC_SITE_URL` to the domain and redeploy. In Supabase > Authentication > URL Configuration set Site URL to the same domain.
 
 ## How it works (security summary)
-- **Booking creation** goes only through `POST /api/bookings` (Zod-validated, rate-limited, honeypot, same-origin check) which calls the service-role-only RPC `create_booking`. The RPC takes a per-slot advisory lock, re-checks availability, lead time, capacity and duplicates, snapshots service name/price from the DB (the client never supplies price, status or payment fields) and inserts atomically.
-- **Duplicate protection:** per-form idempotency key + same-phone/service/slot check + per-phone active-booking cap.
+- **Booking creation** goes only through `POST /api/bookings` (Zod-validated, rate-limited, honeypot, same-origin check) which calls the service-role-only preferred-time RPC `create_booking`. The RPC re-checks date restrictions, lead time and duplicates, snapshots service name/price from the DB (the client never supplies price, status or payment fields), and inserts every request as Pending for manual confirmation.
+- **Duplicate protection:** per-form idempotency key + same-phone/service/date/time check + per-phone active-booking cap. Customer rescheduling returns the request to Pending for team confirmation.
 - **Customer lookup:** a booking is returned only when its reference **and** a 192-bit private access key match (only a SHA-256 hash is stored). Mobile number or reference alone never reveals anything. The key is shown once as a private link (`/my-bookings#ref=...&key=...`, fragment never sent to the server) and saved in the browser's local storage on that device. Responses never include IDs, internal notes, workers or token hashes.
 - **OTP:** not enabled (no provider configured), and the UI says so honestly. Integration point: `lib/notifications/otp.ts`.
 - **Admin:** Supabase Auth password login; every admin page/action calls `requireAdmin()` on the server; the database re-checks `is_admin()` in RLS policies and inside every admin RPC. Status transitions, rescheduling and payments are enforced in SQL functions. Sensitive changes are written to `audit_logs`.

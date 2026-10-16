@@ -18,7 +18,7 @@ export default async function BookPage({ searchParams }: { searchParams: Promise
         <div className="mt-8">
           <BookingForm
             services={services} initialServiceId={initial} bookingEnabled={settings['booking.enabled'] !== false}
-            autoConfirm={settings['booking.auto_confirm'] === true} maxAdvanceDays={Number(settings['booking.max_advance_days']) || 14}
+            maxAdvanceDays={Number(settings['booking.max_advance_days']) || 14}
             paymentNote={String(settings['payments.note'] ?? '')}
           />
         </div>

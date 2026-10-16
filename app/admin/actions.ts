@@ -50,14 +50,14 @@ export async function changeStatusAction(fd: FormData) {
 
 export async function rescheduleAction(fd: FormData) {
   const { supabase } = await requireAdmin();
-  const p = z.object({ id: uuid, date: z.string().regex(dateRe), slot: uuid, reason: z.string().max(300) })
-    .safeParse({ id: f(fd, 'id'), date: f(fd, 'date'), slot: f(fd, 'slot'), reason: cleanText(f(fd, 'reason')) });
-  if (!p.success) back('/admin/bookings', 'err', 'Choose a date and slot.');
+  const p = z.object({ id: uuid, date: z.string().regex(dateRe), preferredTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/), reason: z.string().max(300) })
+    .safeParse({ id: f(fd, 'id'), date: f(fd, 'date'), preferredTime: f(fd, 'preferred_time'), reason: cleanText(f(fd, 'reason')) });
+  if (!p.success) back('/admin/bookings', 'err', 'Choose a valid date and preferred time.');
   const path = `/admin/bookings/${p.data.id}`;
-  const { data, error } = await supabase.rpc('admin_reschedule_booking', { p_booking_id: p.data.id, p_date: p.data.date, p_slot: p.data.slot, p_reason: p.data.reason });
+  const { data, error } = await supabase.rpc('admin_set_preferred_time', { p_booking_id: p.data.id, p_date: p.data.date, p_preferred_time: p.data.preferredTime, p_reason: p.data.reason });
   if (error) back(path, 'err', dbMessage(error));
   if (!data?.ok) back(path, 'err', messageFor(data?.code));
-  back(path, 'ok', 'Booking rescheduled.');
+  back(path, 'ok', 'Preferred date and time updated. A pending request remains pending until you confirm it.');
 }
 
 export async function recordPaymentAction(fd: FormData) {
@@ -99,20 +99,19 @@ export async function saveServiceAction(fd: FormData) {
   const raw = {
     id: blank(f(fd, 'id')), name: f(fd, 'name'), slug: blank(f(fd, 'slug')), category_id: blank(f(fd, 'category_id')),
     description: cleanMultiline(f(fd, 'description')), price_inr: f(fd, 'price_inr'),
-    price_note: blank(f(fd, 'price_note')), duration_minutes: f(fd, 'duration_minutes'), max_per_slot: f(fd, 'max_per_slot'),
+    price_note: blank(f(fd, 'price_note')), duration_minutes: f(fd, 'duration_minutes'),
     min_lead_hours: f(fd, 'min_lead_hours'), max_advance_days: f(fd, 'max_advance_days'), unavailable_message: blank(f(fd, 'unavailable_message')),
   };
   const p = z.object({
     id: uuid.optional(), name: z.string().trim().min(2).max(80), slug: z.string().trim().toLowerCase().regex(slugRe).optional(), category_id: uuid.optional(),
     description: z.string().max(600), price_inr: z.coerce.number().min(0).max(1_000_000),
-    price_note: z.string().max(40).optional(), duration_minutes: optInt(5, 1440), max_per_slot: optInt(1, 100), min_lead_hours: optInt(0, 720),
+    price_note: z.string().max(40).optional(), duration_minutes: optInt(5, 1440), min_lead_hours: optInt(0, 720),
     max_advance_days: optInt(1, 365), unavailable_message: z.string().max(200).optional(),
   }).safeParse(raw);
   if (!p.success) back('/admin/services', 'err', `Check the service form: ${p.error.issues[0]?.path.join('.')} is invalid.`);
   const d = p.data;
   const days = [...new Set(fd.getAll('weekdays').map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6))];
   if (days.length === 0) back('/admin/services', 'err', 'Choose at least one day the service can be booked.');
-  const slotIds = fd.getAll('slot_ids').map(String).filter((s) => uuid.safeParse(s).success);
   let existing: { image_path: string | null; icon: string } | null = null;
   if (d.id) {
     const { data, error } = await supabase.from('services').select('image_path, icon').eq('id', d.id).maybeSingle();
@@ -137,7 +136,7 @@ export async function saveServiceAction(fd: FormData) {
   const row = {
     name: cleanText(d.name), slug: d.slug ?? (slugify(d.name) || 'service'), category_id: d.category_id ?? null, description: d.description,
     icon: existing?.icon ?? 'sparkles', image_path: uploadedImagePath ?? existing?.image_path ?? null,
-    price_inr: d.price_inr, price_note: d.price_note ?? null, duration_minutes: d.duration_minutes ?? null, max_per_slot: d.max_per_slot ?? null,
+    price_inr: d.price_inr, price_note: d.price_note ?? null, duration_minutes: d.duration_minutes ?? null,
     min_lead_hours: d.min_lead_hours ?? null, max_advance_days: d.max_advance_days ?? null, unavailable_message: d.unavailable_message ?? null,
     allowed_weekdays: days.length === 7 ? null : days, is_active: fd.get('is_active') === 'on', is_bookable: fd.get('is_bookable') === 'on',
   };
@@ -158,11 +157,6 @@ export async function saveServiceAction(fd: FormData) {
     id = data!.id;
   }
   if (uploadedImagePath && existing?.image_path) await serviceClient().storage.from(SERVICE_IMAGE_BUCKET).remove([existing.image_path]);
-  await supabase.from('service_slots').delete().eq('service_id', id!);
-  if (slotIds.length) {
-    const { error } = await supabase.from('service_slots').insert(slotIds.map((slot_id) => ({ service_id: id!, slot_id })));
-    if (error) back('/admin/services', 'err', dbMessage(error));
-  }
   back('/admin/services', 'ok', d.id ? 'Service updated.' : 'Service created.');
 }
 
@@ -201,30 +195,6 @@ export async function saveCategoryAction(fd: FormData) {
 }
 
 /* ---------------- availability ---------------- */
-export async function saveSlotAction(fd: FormData) {
-  const { supabase } = await requireAdmin();
-  const time = z.string().regex(/^\d{2}:\d{2}$/);
-  const p = z.object({ id: uuid.optional(), label: z.string().trim().min(2).max(40), start: time, end: time, max: z.coerce.number().int().min(1).max(100), sort: z.coerce.number().int().min(0).max(10000) })
-    .safeParse({ id: blank(f(fd, 'id')), label: cleanText(f(fd, 'label')), start: f(fd, 'start_time'), end: f(fd, 'end_time'), max: f(fd, 'max_bookings'), sort: f(fd, 'sort_order') || '0' });
-  if (!p.success) back('/admin/availability', 'err', 'Check the slot: name, start/end time and capacity.');
-  if (p.data.end <= p.data.start) back('/admin/availability', 'err', 'End time must be after start time.');
-  const days = [...new Set(fd.getAll('weekdays').map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6))];
-  if (days.length === 0) back('/admin/availability', 'err', 'Choose at least one operating day for the slot.');
-  const row = { label: p.data.label, start_time: p.data.start, end_time: p.data.end, max_bookings: p.data.max, sort_order: p.data.sort, weekdays: days, is_active: fd.get('is_active') === 'on' };
-  const { error } = p.data.id ? await supabase.from('time_slots').update(row).eq('id', p.data.id) : await supabase.from('time_slots').insert(row);
-  if (error) back('/admin/availability', 'err', dbMessage(error));
-  back('/admin/availability', 'ok', 'Slot saved.');
-}
-
-export async function deleteSlotAction(fd: FormData) {
-  const { supabase } = await requireAdmin();
-  const id = uuid.safeParse(f(fd, 'id'));
-  if (!id.success) back('/admin/availability', 'err', 'Invalid request.');
-  const { error } = await supabase.from('time_slots').delete().eq('id', id.data);
-  if (error) back('/admin/availability', 'err', dbMessage(error));
-  back('/admin/availability', 'ok', 'Slot deleted.');
-}
-
 export async function addBlockedDateAction(fd: FormData) {
   const { supabase } = await requireAdmin();
   const p = z.object({ date: z.string().regex(dateRe), service: uuid.optional(), reason: z.string().max(120) }).safeParse({ date: f(fd, 'blocked_on'), service: blank(f(fd, 'service_id')), reason: cleanText(f(fd, 'reason')) });

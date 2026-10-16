@@ -25,7 +25,7 @@ export default async function PolicyPage({ params }: { params: Promise<{ slug: s
     <div className="container-page max-w-3xl py-10 sm:py-14">
       <h1 className="text-3xl font-bold">{p.title}</h1>
       {slug === 'payment' && <p className="mt-4 rounded-xl bg-brand-50 p-4 text-sm text-ink-800">{String(s['payments.note'])} Accepted after service: {(s['payments.methods'] as string[]).join(', ') || 'to be confirmed by the team'}.</p>}
-      {slug === 'cancellation' && <p className="mt-4 rounded-xl bg-brand-50 p-4 text-sm text-ink-800">Online cancellation: {s['cancellation.customer_allowed'] ? `until ${s['cancellation.min_hours_before']} hours before the slot` : 'not available, please contact us'}. Online rescheduling: {s['reschedule.customer_allowed'] ? `until ${s['reschedule.min_hours_before']} hours before the slot` : 'not available, please contact us'}.</p>}
+      {slug === 'cancellation' && <p className="mt-4 rounded-xl bg-brand-50 p-4 text-sm text-ink-800">Online cancellation: {s['cancellation.customer_allowed'] ? `until ${s['cancellation.min_hours_before']} hours before your requested time` : 'not available, please contact us'}. Online rescheduling: {s['reschedule.customer_allowed'] ? `until ${s['reschedule.min_hours_before']} hours before your requested time` : 'not available, please contact us'}.</p>}
       <div className="mt-6 whitespace-pre-line leading-relaxed text-ink-700">{text || 'This policy has not been published yet.'}</div>
     </div>
   );

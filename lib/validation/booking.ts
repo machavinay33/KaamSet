@@ -35,7 +35,7 @@ export const bookingFormSchema = z.object({
   flatNumber: z.string().trim().min(1, 'Enter your flat number').max(40, 'Flat number is too long')
     .regex(/^[A-Za-z0-9][A-Za-z0-9\s\-/,.#]*$/, 'Use letters, numbers, - / , . only'),
   bookingDate: z.string().refine(isRealDate, 'Choose a date'),
-  slotId: z.string().uuid('Choose a time slot'),
+  preferredTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/, 'Enter a preferred time'),
   instructions: z.string().max(500, 'Keep instructions under 500 characters').optional().default(''),
   acceptTerms: z.boolean().refine((v) => v === true, 'Please accept the terms and cancellation policy'),
   website: z.string().max(0).optional().default(''), // honeypot, must stay empty
@@ -51,5 +51,6 @@ export const lookupItemSchema = z.object({
 export const lookupSchema = z.object({ items: z.array(lookupItemSchema).min(1).max(10) });
 export const cancelSchema = lookupItemSchema.extend({ reason: z.string().max(300).optional().default('') });
 export const rescheduleSchema = lookupItemSchema.extend({
-  bookingDate: z.string().refine(isRealDate), slotId: z.string().uuid(),
+  bookingDate: z.string().refine(isRealDate),
+  preferredTime: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
 });

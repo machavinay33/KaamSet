@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { CalendarClock, Loader2, XCircle } from 'lucide-react';
 import { StatusBadge, PaymentBadge } from '@/components/StatusBadge';
-import { SlotPicker } from '@/components/SlotPicker';
 import { formatDate, formatINR, formatTime, addDays, todayIST } from '@/lib/format';
 import type { BookingView } from '@/lib/client/saved-bookings';
 
@@ -12,7 +11,7 @@ export function BookingCard({ booking, accessKey, onChanged }: { booking: Bookin
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [reason, setReason] = useState('');
-  const [date, setDate] = useState(''); const [slotId, setSlotId] = useState('');
+  const [date, setDate] = useState(''); const [preferredTime, setPreferredTime] = useState('');
 
   async function call(path: string, body: Record<string, unknown>) {
     setBusy(true); setError('');
@@ -33,7 +32,7 @@ export function BookingCard({ booking, accessKey, onChanged }: { booking: Bookin
         <div><dt className="text-ink-500">Service</dt><dd className="font-medium">{booking.service_name}</dd></div>
         <div><dt className="text-ink-500">Amount (pay after service)</dt><dd className="font-medium">{formatINR(booking.price_inr)}</dd></div>
         <div><dt className="text-ink-500">Date</dt><dd className="font-medium">{formatDate(booking.booking_date)}</dd></div>
-        <div><dt className="text-ink-500">Time</dt><dd className="font-medium">{booking.slot_label}, {formatTime(booking.slot_start_time)} - {formatTime(booking.slot_end_time)}</dd></div>
+        <div><dt className="text-ink-500">{booking.preferred_time ? 'Preferred time' : 'Time'}</dt><dd className="font-medium">{booking.preferred_time ? formatTime(booking.preferred_time) : `${booking.slot_label}, ${formatTime(booking.slot_start_time)} - ${formatTime(booking.slot_end_time)}`}</dd></div>
         {booking.township && <div><dt className="text-ink-500">Township</dt><dd className="font-medium">{booking.township}</dd></div>}
         {booking.building_name && <div><dt className="text-ink-500">Wing/apartment name</dt><dd className="font-medium">{booking.building_name}</dd></div>}
         {booking.flat_number && <div><dt className="text-ink-500">Flat number</dt><dd className="font-medium">{booking.flat_number}</dd></div>}
@@ -45,7 +44,7 @@ export function BookingCard({ booking, accessKey, onChanged }: { booking: Bookin
 
       {mode === 'view' && (booking.can_cancel || booking.can_reschedule) && (
         <div className="mt-4 flex flex-wrap gap-2 border-t border-line pt-4">
-          {booking.can_reschedule && <button className="btn-secondary btn-sm" onClick={() => setMode('reschedule')}><CalendarClock className="h-4 w-4" aria-hidden /> Reschedule</button>}
+          {booking.can_reschedule && <button className="btn-secondary btn-sm" onClick={() => { setDate(booking.booking_date); setPreferredTime((booking.preferred_time ?? booking.slot_start_time).slice(0, 5)); setMode('reschedule'); }}><CalendarClock className="h-4 w-4" aria-hidden /> Reschedule</button>}
           {booking.can_cancel && <button className="btn-danger btn-sm" onClick={() => setMode('cancel')}><XCircle className="h-4 w-4" aria-hidden /> Cancel booking</button>}
         </div>
       )}
@@ -66,11 +65,12 @@ export function BookingCard({ booking, accessKey, onChanged }: { booking: Bookin
       {mode === 'reschedule' && (
         <div className="mt-4 space-y-3 border-t border-line pt-4">
           <label className="label" htmlFor={`d-${booking.reference}`}>New date</label>
-          <input id={`d-${booking.reference}`} type="date" className="input" min={todayIST()} max={addDays(todayIST(), 60)} value={date} onChange={(e) => { setDate(e.target.value); setSlotId(''); }} />
-          <SlotPicker serviceId={booking.service_id} date={date} value={slotId} onChange={setSlotId} />
-          <p className="text-xs text-ink-500">If automatic confirmation is off, a rescheduled booking returns to Pending until the team confirms it.</p>
+          <input id={`d-${booking.reference}`} type="date" className="input" min={todayIST()} max={addDays(todayIST(), 60)} value={date} onChange={(e) => setDate(e.target.value)} />
+          <label className="label" htmlFor={`t-${booking.reference}`}>New preferred time</label>
+          <input id={`t-${booking.reference}`} type="time" className="input" value={preferredTime} onChange={(e) => setPreferredTime(e.target.value)} />
+          <p className="text-xs text-ink-500">Your new preferred date and time will be sent to the team for confirmation.</p>
           <div className="flex gap-2">
-            <button className="btn-primary btn-sm" disabled={busy || !date || !slotId} onClick={() => call('/api/bookings/reschedule', { bookingDate: date, slotId })}>{busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Confirm new time</button>
+            <button className="btn-primary btn-sm" disabled={busy || !date || !preferredTime} onClick={() => call('/api/bookings/reschedule', { bookingDate: date, preferredTime })}>{busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />} Request new time</button>
             <button className="btn-secondary btn-sm" onClick={() => setMode('view')}>Back</button>
           </div>
         </div>

@@ -5,7 +5,7 @@ import { CheckCircle2, Copy, Loader2 } from 'lucide-react';
 import { loadSaved, lookupMany, privateLink, type BookingView } from '@/lib/client/saved-bookings';
 import { BookingCard } from '@/components/BookingCard';
 
-export function ConfirmedClient({ autoConfirm, whatsappHref }: { autoConfirm: boolean; whatsappHref: string | null }) {
+export function ConfirmedClient({ whatsappHref }: { whatsappHref: string | null }) {
   const [state, setState] = useState<'loading' | 'ready' | 'missing' | 'error'>('loading');
   const [booking, setBooking] = useState<BookingView | null>(null);
   const [key, setKey] = useState(''); const [link, setLink] = useState(''); const [copied, setCopied] = useState(false); const [msg, setMsg] = useState('');
@@ -34,7 +34,7 @@ export function ConfirmedClient({ autoConfirm, whatsappHref }: { autoConfirm: bo
       <div className="card flex items-start gap-4 border-emerald-200 bg-emerald-50/50 p-5">
         <CheckCircle2 className="mt-0.5 h-7 w-7 shrink-0 text-emerald-700" aria-hidden />
         <div><h2 className="text-xl font-bold">{booking.status === 'confirmed' ? 'Your booking is confirmed' : 'Booking request submitted'}</h2>
-          <p className="mt-1 text-sm text-ink-700">{booking.status === 'confirmed' || autoConfirm ? 'Automatic confirmation is on, so your slot is reserved.' : 'It becomes confirmed only when the KaamSet team accepts it. Check My Bookings for updates.'} Payment is collected after the service.</p></div>
+          <p className="mt-1 text-sm text-ink-700">{booking.status === 'confirmed' ? 'The KaamSet team has confirmed your requested time.' : 'Your requested time is pending review and is confirmed only when the KaamSet team accepts it. Check My Bookings for updates.'} Payment is collected after the service.</p></div>
       </div>
       <BookingCard booking={booking} accessKey={key} onChanged={load} />
       <div className="card p-5">
