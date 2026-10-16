@@ -1,23 +1,22 @@
 import type { Metadata, Viewport } from 'next';
 import { Outfit, DM_Sans } from 'next/font/google';
 import './globals.css';
+import { SITE_URL } from '@/lib/seo';
 
 const display = Outfit({ subsets: ['latin'], variable: '--font-display', display: 'swap' });
 const body = DM_Sans({ subsets: ['latin'], variable: '--font-body', display: 'swap' });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-
 export const metadata: Metadata = {
-  metadataBase: new URL(siteUrl),
-  title: { default: 'KaamSet - Home chores, sorted.', template: '%s | KaamSet' },
-  description: 'Book trusted home services across MIHAN, Nagpur. Clear pricing, simple booking, pay after service.',
+  metadataBase: new URL(SITE_URL),
+  title: { default: 'Home Services in MIHAN, Nagpur', template: '%s | KaamSet' },
+  description: 'Book home cleaning and everyday household services across MIHAN, Nagpur. Choose a service and request a preferred time.',
   openGraph: {
-    title: 'KaamSet - Home chores, sorted.',
-    description: 'Home services available across MIHAN, Nagpur.',
-    siteName: 'KaamSet', type: 'website', locale: 'en_IN',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'KaamSet - Home chores, sorted.' }],
+    title: 'Home Services in MIHAN, Nagpur | KaamSet',
+    description: 'Book home cleaning and everyday household services across MIHAN, Nagpur.',
+    url: new URL('/', `${SITE_URL}/`).toString(), siteName: 'KaamSet', type: 'website', locale: 'en_IN',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'KaamSet home services in MIHAN, Nagpur' }],
   },
-  twitter: { card: 'summary_large_image', title: 'KaamSet - Home chores, sorted.', images: ['/og.png'] },
+  twitter: { card: 'summary_large_image', title: 'Home Services in MIHAN, Nagpur | KaamSet', description: 'Book home cleaning and everyday household services across MIHAN, Nagpur.', images: ['/og.png'] },
 };
 export const viewport: Viewport = { themeColor: '#FFFBF7', width: 'device-width', initialScale: 1 };
 

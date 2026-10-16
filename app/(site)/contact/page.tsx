@@ -3,9 +3,14 @@ import Link from 'next/link';
 import { Clock, Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import { getSettings } from '@/lib/data/public';
 import { phoneLinks } from '@/lib/format';
+import { pageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
-export const metadata: Metadata = { title: 'Contact' };
+export const metadata: Metadata = pageMetadata(
+  'Contact in MIHAN, Nagpur',
+  'Contact KaamSet about home cleaning and household services in MIHAN, Nagpur, or get help with a booking.',
+  '/contact',
+);
 
 export default async function ContactPage() {
   const s = await getSettings();
@@ -15,7 +20,7 @@ export default async function ContactPage() {
   return (
     <div className="container-page max-w-3xl py-10 sm:py-14">
       <h1 className="text-3xl font-bold sm:text-4xl">Contact</h1>
-      <p className="mt-2 text-ink-600">KaamSet services are available across MIHAN.</p>
+      <p className="mt-2 text-ink-600">KaamSet provides home services across MIHAN, Nagpur, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.</p>
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
         {phone && <a className="card flex items-center gap-3 p-5 hover:bg-brand-50" href={phone.tel}><Phone className="h-5 w-5 text-brand-700" aria-hidden /><span><span className="block text-sm text-ink-500">Call</span><span className="font-semibold">{s['contact.phone']}</span></span></a>}
         {wa && <a className="card flex items-center gap-3 p-5 hover:bg-brand-50" href={wa.wa} target="_blank" rel="noopener noreferrer"><MessageCircle className="h-5 w-5 text-brand-700" aria-hidden /><span><span className="block text-sm text-ink-500">WhatsApp chat</span><span className="font-semibold">{waNumber}</span></span></a>}

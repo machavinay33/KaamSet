@@ -41,8 +41,9 @@ First steps in `/admin/settings`: contact phone/WhatsApp (shown only when filled
 
 ## 6. Deploy to Vercel
 1. Push to GitHub, import the repo in Vercel (framework: Next.js).
-2. Add environment variables (Production + Preview): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `APP_SECRET`, `NEXT_PUBLIC_SITE_URL` (your final https URL, no trailing slash).
-3. Deploy. **Custom domain:** Vercel > Settings > Domains > add domain, set the DNS records it shows, wait for the certificate, then update `NEXT_PUBLIC_SITE_URL` to the domain and redeploy. In Supabase > Authentication > URL Configuration set Site URL to the same domain.
+2. Add environment variables (Production + Preview): `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `APP_SECRET`, and `NEXT_PUBLIC_SITE_URL=https://www.kaamset.online` (the canonical domain, no trailing slash).
+3. Deploy. The apex domain redirects to `www`, which is the canonical site URL. In Supabase > Authentication > URL Configuration set Site URL to `https://www.kaamset.online`.
+4. In Google Search Console, verify the `kaamset.online` Domain property and submit `https://www.kaamset.online/sitemap.xml`. Inspect the homepage and `/services` URL to monitor crawling and indexing.
 
 ## How it works (security summary)
 - **Booking creation** goes only through `POST /api/bookings` (Zod-validated, rate-limited, honeypot, same-origin check) which calls the service-role-only preferred-time RPC `create_booking`. The RPC re-checks date restrictions, lead time and duplicates, snapshots service name/price from the DB (the client never supplies price, status or payment fields), and inserts every request as Pending for manual confirmation.

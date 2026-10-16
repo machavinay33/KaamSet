@@ -1,18 +1,21 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getSettings } from '@/lib/data/public';
+import { pageMetadata } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
-const POLICIES: Record<string, { key: string; title: string }> = {
-  terms: { key: 'policy.terms', title: 'Service terms' },
-  privacy: { key: 'policy.privacy', title: 'Privacy policy' },
-  cancellation: { key: 'policy.cancellation', title: 'Cancellation policy' },
-  payment: { key: 'policy.payment', title: 'Payments' },
+const POLICIES: Record<string, { key: string; title: string; description: string }> = {
+  terms: { key: 'policy.terms', title: 'Service terms', description: 'Read the service terms for booking home services with KaamSet in MIHAN, Nagpur.' },
+  privacy: { key: 'policy.privacy', title: 'Privacy policy', description: 'Learn how KaamSet handles information submitted when requesting home services in MIHAN.' },
+  cancellation: { key: 'policy.cancellation', title: 'Cancellation policy', description: 'Review KaamSet cancellation and rescheduling rules for home-service bookings in MIHAN.' },
+  payment: { key: 'policy.payment', title: 'Payment information', description: 'See how payment works for KaamSet home services in MIHAN, Nagpur.' },
 };
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  return { title: POLICIES[slug]?.title ?? 'Policy' };
+  const policy = POLICIES[slug];
+  if (!policy) notFound();
+  return pageMetadata(policy.title, policy.description, `/policies/${slug}`);
 }
 
 export default async function PolicyPage({ params }: { params: Promise<{ slug: string }> }) {

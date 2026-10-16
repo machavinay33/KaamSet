@@ -12,6 +12,11 @@
 - [ ] NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY, APP_SECRET (32+ random chars), NEXT_PUBLIC_SITE_URL
 - [ ] Production URL / custom domain added, HTTPS active, `NEXT_PUBLIC_SITE_URL` matches
 
+## Search discoverability
+- [ ] `NEXT_PUBLIC_SITE_URL` is `https://www.kaamset.online`; `robots.txt`, sitemap URLs, canonical URLs and social URLs use this domain
+- [ ] Verify `kaamset.online` in Google Search Console and submit `https://www.kaamset.online/sitemap.xml`
+- [ ] Use URL Inspection to request indexing for the homepage and services page; monitor indexing reports
+
 ## Admin
 - [ ] First admin created with a strong unique password; admin login works; a non-admin account is rejected
 - [ ] Settings filled: contact, hours, payment methods, cancellation/reschedule limits; all requests are manually confirmed

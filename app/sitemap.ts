@@ -1,5 +1,7 @@
 import type { MetadataRoute } from 'next';
+import { SITE_URL } from '@/lib/seo';
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = process.env.NEXT_PUBLIC_SITE_URL ?? 'http://localhost:3000';
-  return ['', '/services', '/book', '/contact', '/policies/terms', '/policies/privacy', '/policies/cancellation', '/policies/payment'].map((p) => ({ url: `${base}${p}`, changeFrequency: 'weekly' as const }));
+  const paths = ['/', '/services', '/book', '/contact', '/policies/terms', '/policies/privacy', '/policies/cancellation', '/policies/payment'];
+  return paths.map((path) => ({ url: new URL(path, `${SITE_URL}/`).toString(), changeFrequency: 'weekly' as const }));
 }

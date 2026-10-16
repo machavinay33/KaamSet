@@ -5,8 +5,14 @@ import { getCatalog, getSettings } from '@/lib/data/public';
 import { ServiceCard } from '@/components/ServiceCard';
 import { Reveal } from '@/components/Reveal';
 import { phoneLinks } from '@/lib/format';
+import { pageMetadata, SITE_URL } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
+export const metadata = pageMetadata(
+  'Home Services in MIHAN, Nagpur',
+  'Book home cleaning and everyday household services in MIHAN, Nagpur. Choose your township, request a preferred time, and get confirmation from KaamSet.',
+  '/',
+);
 
 const FAQ = [
   ['Who can use KaamSet?', 'KaamSet services are available across MIHAN, including Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City.'],
@@ -21,9 +27,31 @@ export default async function HomePage() {
   const bookingEnabled = settings['booking.enabled'] !== false;
   const wa = phoneLinks(settings['contact.whatsapp']);
   const phone = phoneLinks(settings['contact.phone']);
+  const structuredData = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      '@id': `${SITE_URL}/#organization`,
+      name: 'KaamSet',
+      alternateName: 'Kaam Set',
+      url: SITE_URL,
+      logo: `${SITE_URL}/logo-mark.png`,
+      description: 'Home cleaning and household services across MIHAN, Nagpur.',
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      '@id': `${SITE_URL}/#website`,
+      name: 'KaamSet',
+      alternateName: 'Kaam Set',
+      url: SITE_URL,
+      publisher: { '@id': `${SITE_URL}/#organization` },
+    },
+  ];
 
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData).replace(/</g, '\\u003c') }} />
       <section className="relative overflow-hidden">
         <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 h-96 w-96 rounded-full bg-brand-100/70 blur-3xl" />
         <div className="container-page grid items-center gap-10 py-12 md:grid-cols-[1.15fr_1fr] md:py-20">
@@ -31,9 +59,9 @@ export default async function HomePage() {
             <p className="inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3.5 py-1.5 text-sm font-medium text-brand-800">
               <MapPin className="h-4 w-4" aria-hidden /> Serving MIHAN
             </p>
-            <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">Home chores, sorted.</h1>
+            <h1 className="mt-5 text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl lg:text-6xl">Home services in MIHAN, Nagpur</h1>
             <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink-600">
-              Cleaning, repairs and everyday home help across MIHAN. Pick a service, share your preferred date and time, and pay after the work is done.
+              Home chores, sorted. Book cleaning and everyday home help in Shiv Khailasa township, Moraj Waterfalls, Bloomdale and First City. Request a preferred date and time, then pay after the work is done.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
               <Link href="/book" className="btn-primary px-6 py-3 text-base">Book a Service <ArrowRight className="h-4 w-4" aria-hidden /></Link>
