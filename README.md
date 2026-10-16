@@ -18,7 +18,7 @@ cp .env.example .env.local    # fill in values (see below)
 
 ## 3. Run migrations
 Run in order in the Supabase **SQL editor** (or `supabase db push` with the CLI):
-`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql` -> `0006_mihan_address.sql`.
+`supabase/migrations/0001_schema.sql` -> `0002_functions.sql` -> `0003_rls.sql` -> `0004_grants.sql` -> `0005_default_settings.sql` -> `0006_mihan_address.sql` -> `0007_service_images.sql`.
 
 Optional, **development only**: `supabase/seed.sql` (demo services with placeholder prices). Do not ship demo prices: edit every service in `/admin/services` before launch.
 

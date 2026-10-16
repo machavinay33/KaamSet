@@ -4,8 +4,8 @@ import { z } from 'zod';
 import { requireAdmin } from '@/lib/auth/admin';
 import { messageFor } from '@/lib/booking/messages';
 import { cleanMultiline, cleanText } from '@/lib/validation/booking';
-import { ICON_KEYS } from '@/components/ServiceIcon';
 import { parseSettingsForm } from '@/lib/settings-schema';
+import { serviceClient } from '@/lib/supabase/service';
 
 const uuid = z.string().uuid();
 const dateRe = /^\d{4}-\d{2}-\d{2}$/;
@@ -14,6 +14,14 @@ const f = (fd: FormData, k: string) => String(fd.get(k) ?? '');
 const blank = (v: string) => (v.trim() === '' ? undefined : v.trim());
 const optInt = (min: number, max: number) => z.preprocess((v) => (v === '' || v == null ? undefined : v), z.coerce.number().int().min(min).max(max).optional());
 const slugify = (s: string) => s.toLowerCase().normalize('NFKD').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60);
+const SERVICE_IMAGE_BUCKET = 'service-images';
+
+function supportedImageSignature(bytes: Uint8Array, mime: string): boolean {
+  if (mime === 'image/jpeg') return bytes.length >= 3 && bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
+  if (mime === 'image/png') return bytes.length >= 8 && bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47 && bytes[4] === 0x0d && bytes[5] === 0x0a && bytes[6] === 0x1a && bytes[7] === 0x0a;
+  if (mime === 'image/webp') return bytes.length >= 12 && String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
+  return false;
+}
 
 function back(path: string, kind: 'ok' | 'err', msg: string): never {
   const safe = path.startsWith('/admin') && !path.startsWith('//') ? path : '/admin';
@@ -90,13 +98,13 @@ export async function saveServiceAction(fd: FormData) {
   const { supabase } = await requireAdmin();
   const raw = {
     id: blank(f(fd, 'id')), name: f(fd, 'name'), slug: blank(f(fd, 'slug')), category_id: blank(f(fd, 'category_id')),
-    description: cleanMultiline(f(fd, 'description')), icon: f(fd, 'icon') || 'sparkles', price_inr: f(fd, 'price_inr'),
+    description: cleanMultiline(f(fd, 'description')), price_inr: f(fd, 'price_inr'),
     price_note: blank(f(fd, 'price_note')), duration_minutes: f(fd, 'duration_minutes'), max_per_slot: f(fd, 'max_per_slot'),
     min_lead_hours: f(fd, 'min_lead_hours'), max_advance_days: f(fd, 'max_advance_days'), unavailable_message: blank(f(fd, 'unavailable_message')),
   };
   const p = z.object({
     id: uuid.optional(), name: z.string().trim().min(2).max(80), slug: z.string().trim().toLowerCase().regex(slugRe).optional(), category_id: uuid.optional(),
-    description: z.string().max(600), icon: z.enum(ICON_KEYS as [string, ...string[]]), price_inr: z.coerce.number().min(0).max(1_000_000),
+    description: z.string().max(600), price_inr: z.coerce.number().min(0).max(1_000_000),
     price_note: z.string().max(40).optional(), duration_minutes: optInt(5, 1440), max_per_slot: optInt(1, 100), min_lead_hours: optInt(0, 720),
     max_advance_days: optInt(1, 365), unavailable_message: z.string().max(200).optional(),
   }).safeParse(raw);
@@ -105,8 +113,30 @@ export async function saveServiceAction(fd: FormData) {
   const days = [...new Set(fd.getAll('weekdays').map(Number).filter((n) => Number.isInteger(n) && n >= 0 && n <= 6))];
   if (days.length === 0) back('/admin/services', 'err', 'Choose at least one day the service can be booked.');
   const slotIds = fd.getAll('slot_ids').map(String).filter((s) => uuid.safeParse(s).success);
+  let existing: { image_path: string | null; icon: string } | null = null;
+  if (d.id) {
+    const { data, error } = await supabase.from('services').select('image_path, icon').eq('id', d.id).maybeSingle();
+    if (error) back('/admin/services', 'err', dbMessage(error));
+    existing = data;
+  }
+  const fileValue = fd.get('service_image');
+  const imageFile = fileValue instanceof File && fileValue.size > 0 ? fileValue : null;
+  let uploadedImagePath: string | null = null;
+  if (imageFile) {
+    if (imageFile.size > 3 * 1024 * 1024) back('/admin/services', 'err', 'Choose an image no larger than 3 MB.');
+    const extension = imageFile.type === 'image/jpeg' ? 'jpg' : imageFile.type === 'image/png' ? 'png' : imageFile.type === 'image/webp' ? 'webp' : null;
+    if (!extension) back('/admin/services', 'err', 'Use a JPEG, PNG or WebP image.');
+    const bytes = new Uint8Array(await imageFile.arrayBuffer());
+    if (!supportedImageSignature(bytes, imageFile.type)) back('/admin/services', 'err', 'The selected file is not a valid JPEG, PNG or WebP image.');
+    uploadedImagePath = `services/${crypto.randomUUID()}.${extension}`;
+    const { error } = await serviceClient().storage.from(SERVICE_IMAGE_BUCKET).upload(uploadedImagePath, bytes, {
+      contentType: imageFile.type, cacheControl: '31536000', upsert: false,
+    });
+    if (error) back('/admin/services', 'err', 'Could not upload the image. Please try again.');
+  }
   const row = {
-    name: cleanText(d.name), slug: d.slug ?? (slugify(d.name) || 'service'), category_id: d.category_id ?? null, description: d.description, icon: d.icon,
+    name: cleanText(d.name), slug: d.slug ?? (slugify(d.name) || 'service'), category_id: d.category_id ?? null, description: d.description,
+    icon: existing?.icon ?? 'sparkles', image_path: uploadedImagePath ?? existing?.image_path ?? null,
     price_inr: d.price_inr, price_note: d.price_note ?? null, duration_minutes: d.duration_minutes ?? null, max_per_slot: d.max_per_slot ?? null,
     min_lead_hours: d.min_lead_hours ?? null, max_advance_days: d.max_advance_days ?? null, unavailable_message: d.unavailable_message ?? null,
     allowed_weekdays: days.length === 7 ? null : days, is_active: fd.get('is_active') === 'on', is_bookable: fd.get('is_bookable') === 'on',
@@ -114,13 +144,20 @@ export async function saveServiceAction(fd: FormData) {
   let id = d.id;
   if (id) {
     const { error } = await supabase.from('services').update(row).eq('id', id);
-    if (error) back('/admin/services', 'err', dbMessage(error));
+    if (error) {
+      if (uploadedImagePath) await serviceClient().storage.from(SERVICE_IMAGE_BUCKET).remove([uploadedImagePath]);
+      back('/admin/services', 'err', dbMessage(error));
+    }
   } else {
     const { data: last } = await supabase.from('services').select('sort_order').order('sort_order', { ascending: false }).limit(1).maybeSingle();
     const { data, error } = await supabase.from('services').insert({ ...row, sort_order: (last?.sort_order ?? 0) + 10 }).select('id').single();
-    if (error) back('/admin/services', 'err', dbMessage(error));
+    if (error) {
+      if (uploadedImagePath) await serviceClient().storage.from(SERVICE_IMAGE_BUCKET).remove([uploadedImagePath]);
+      back('/admin/services', 'err', dbMessage(error));
+    }
     id = data!.id;
   }
+  if (uploadedImagePath && existing?.image_path) await serviceClient().storage.from(SERVICE_IMAGE_BUCKET).remove([existing.image_path]);
   await supabase.from('service_slots').delete().eq('service_id', id!);
   if (slotIds.length) {
     const { error } = await supabase.from('service_slots').insert(slotIds.map((slot_id) => ({ service_id: id!, slot_id })));

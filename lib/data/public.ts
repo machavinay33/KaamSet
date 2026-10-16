@@ -3,11 +3,17 @@ import { defaultSettings, type Settings } from '@/lib/settings-schema';
 
 export type Service = {
   id: string; category_id: string | null; slug: string; name: string; description: string; icon: string;
+  image_path: string | null; image_url: string | null;
   price_inr: number; price_note: string | null; duration_minutes: number | null; is_bookable: boolean; unavailable_message: string | null;
   max_advance_days: number | null; min_lead_hours: number | null; sort_order: number;
 };
 export type Category = { id: string; name: string; slug: string; sort_order: number };
 export type Slot = { id: string; label: string; start_time: string; end_time: string; weekdays: number[]; sort_order: number };
+
+export function serviceImageUrl(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return publicClient().storage.from('service-images').getPublicUrl(path).data.publicUrl;
+}
 
 export async function getSettings(): Promise<Settings> {
   const { data } = await publicClient().from('business_settings').select('key, value');
@@ -19,13 +25,16 @@ export async function getSettings(): Promise<Settings> {
 
 export async function getCatalog(): Promise<{ categories: Category[]; services: Service[]; error: boolean }> {
   const db = publicClient();
-  const [c, s] = await Promise.all([
+  const [c, initialServices] = await Promise.all([
     db.from('service_categories').select('id, name, slug, sort_order').order('sort_order').order('name'),
     db.from('services')
-      .select('id, category_id, slug, name, description, icon, price_inr, price_note, duration_minutes, is_bookable, unavailable_message, max_advance_days, min_lead_hours, sort_order')
+      .select('id, category_id, slug, name, description, icon, image_path, price_inr, price_note, duration_minutes, is_bookable, unavailable_message, max_advance_days, min_lead_hours, sort_order')
       .order('sort_order').order('name'),
   ]);
-  const services = ((s.data ?? []) as any[]).map((x) => ({ ...x, price_inr: Number(x.price_inr) })) as Service[];
+  const s = initialServices.error && ['42703', 'PGRST204'].includes(initialServices.error.code ?? '')
+    ? await db.from('services').select('id, category_id, slug, name, description, icon, price_inr, price_note, duration_minutes, is_bookable, unavailable_message, max_advance_days, min_lead_hours, sort_order').order('sort_order').order('name')
+    : initialServices;
+  const services = ((s.data ?? []) as any[]).map((x) => ({ ...x, image_path: x.image_path ?? null, image_url: serviceImageUrl(x.image_path), price_inr: Number(x.price_inr) })) as Service[];
   return { categories: (c.data ?? []) as Category[], services, error: !!(c.error || s.error) };
 }
 

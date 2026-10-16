@@ -8,9 +8,11 @@ export function ServiceCard({ service, bookingEnabled }: { service: Service; boo
   const available = service.is_bookable && bookingEnabled;
   return (
     <article className="card flex h-full flex-col p-5 transition-shadow hover:shadow-md">
-      <div className="flex items-start justify-between gap-3">
-        <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-brand-100 text-brand-700"><ServiceIcon name={service.icon} className="h-6 w-6" /></span>
-        {!available && <span className="badge bg-stone-100 text-stone-700 ring-1 ring-stone-200">Temporarily unavailable</span>}
+      <div className="relative mb-4 aspect-[4/3] overflow-hidden rounded-xl bg-brand-50">
+        {service.image_url
+          ? <div role="img" aria-label={service.name} className="h-full w-full bg-cover bg-center" style={{ backgroundImage: `url("${service.image_url}")` }} />
+          : <div className="flex h-full w-full items-center justify-center text-brand-700"><ServiceIcon name={service.icon} className="h-12 w-12" /></div>}
+        {!available && <span className="badge absolute right-2 top-2 bg-stone-100 text-stone-700 ring-1 ring-stone-200">Temporarily unavailable</span>}
       </div>
       <h3 className="mt-4 text-lg font-semibold">{service.name}</h3>
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-ink-600">{service.description}</p>
